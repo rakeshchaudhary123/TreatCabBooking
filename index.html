@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Travel Animus Booking</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+font-family:'Poppins',sans-serif;
+background:url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1650&q=80') no-repeat center center fixed;
+background-size:cover;
+}
+
+.glass{
+backdrop-filter:blur(16px);
+background-color:rgba(255,255,255,0.15);
+border:1px solid rgba(255,255,255,0.3);
+}
+
+</style>
+
+</head>
+
+<body class="min-h-screen flex flex-col items-center px-4 py-8 text-white">
+
+<div class="max-w-2xl w-full glass rounded-3xl shadow-2xl p-8">
+
+<h1 class="text-4xl font-bold text-yellow-300 text-center mb-6">
+🚖 Travel Animus
+</h1>
+
+<!-- TYPE OPTIONS -->
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+
+<label class="border p-3 rounded text-center cursor-pointer">
+<input type="radio" name="type" value="client" checked hidden>
+Client
+</label>
+
+<label class="border p-3 rounded text-center cursor-pointer">
+<input type="radio" name="type" value="outstation" hidden>
+Outstation
+</label>
+
+<label class="border p-3 rounded text-center cursor-pointer">
+<input type="radio" name="type" value="local" hidden>
+Local
+</label>
+
+<label class="border p-3 rounded text-center cursor-pointer">
+<input type="radio" name="type" value="feedback" hidden>
+Feedback
+</label>
+
+</div>
+
+<form id="bookingForm" class="space-y-4"></form>
+
+<p id="responseMsg" class="text-center mt-4 text-green-200"></p>
+
+</div>
+
+<script>
+
+/* ================= API ================= */
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxnO99FB4vJ6m2LAOZ-k_2cfivT-dNt4YGpxW8qKalGHOnClAS9wt3k6kYt3uP_P1Mf/exec";
+
+/* ================= FORM CONFIG ================= */
+
+const formConfigs = {
+
+client:[
+
+{name:'company',placeholder:'Company Name',type:'text'},
+{name:'employee',placeholder:'Employee Name',type:'text'},
+{name:'name',placeholder:'Customer Name',type:'text'},
+{name:'mobile',placeholder:'Mobile',type:'tel'},
+{name:'destination',placeholder:'Destination',type:'text'},
+{name:'date',placeholder:'Travel Date',type:'date'},
+{name:'time',placeholder:'Travel Time',type:'time'},
+{name:'days',placeholder:'No of Days',type:'number'},
+{name:'email',placeholder:'Email',type:'email'}
+
+],
+
+outstation:[
+
+{name:'name',placeholder:'Name',type:'text'},
+{name:'mobile',placeholder:'Mobile',type:'tel'},
+{name:'destination',placeholder:'Destination',type:'text'},
+{name:'date',placeholder:'Travel Date',type:'date'},
+{name:'time',placeholder:'Time',type:'time'},
+{name:'days',placeholder:'Days',type:'number'}
+
+],
+
+local:[
+
+{name:'name',placeholder:'Name',type:'text'},
+{name:'mobile',placeholder:'Mobile',type:'tel'},
+{name:'location',placeholder:'Pickup Location',type:'text'},
+{name:'destination',placeholder:'Destination',type:'text'},
+{name:'date',placeholder:'Travel Date',type:'date'},
+{name:'time',placeholder:'Time',type:'time'}
+
+],
+
+feedback:[
+
+{name:'name',placeholder:'Your Name',type:'text'},
+{name:'mobile',placeholder:'Mobile',type:'tel'},
+{name:'message',placeholder:'Your Feedback',type:'text'}
+
+]
+
+};
+
+/* ================= RENDER ================= */
+
+const form=document.getElementById("bookingForm");
+const msg=document.getElementById("responseMsg");
+
+document.querySelectorAll(
+'input[name="type"]'
+).forEach(r=>{
+
+r.addEventListener(
+"change",
+()=>renderFields(r.value)
+);
+
+});
+
+function renderFields(type){
+
+form.innerHTML="";
+
+formConfigs[type].forEach(field=>{
+
+const input=document.createElement("input");
+
+input.name=field.name;
+input.type=field.type;
+input.placeholder=field.placeholder;
+input.required=true;
+
+input.className=
+"w-full px-4 py-2 rounded text-black";
+
+form.appendChild(input);
+
+});
+
+const btn=document.createElement("button");
+
+btn.type="submit";
+btn.textContent="Submit";
+
+btn.className=
+"w-full bg-yellow-500 text-black py-2 rounded";
+
+form.appendChild(btn);
+
+}
+
+renderFields("client");
+
+/* ================= SUBMIT ================= */
+
+form.addEventListener(
+"submit",
+async(e)=>{
+
+e.preventDefault();
+
+const data =
+Object.fromEntries(
+new FormData(form).entries()
+);
+
+data.type =
+document.querySelector(
+'input[name="type"]:checked'
+).value;
+
+/* REQUIRED */
+
+data.action="createBooking";
+data.apiKey="CAB_API_2026_SECURE";
+
+msg.innerHTML="⏳ Submitting...";
+
+try{
+
+await fetch(
+API_URL,
+{
+method:"POST",
+mode:"no-cors",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(data)
+}
+);
+
+msg.innerHTML=
+"✅ Submitted Successfully";
+
+form.reset();
+
+renderFields(data.type);
+
+}
+
+catch(err){
+
+msg.innerHTML=
+"❌ Network Error";
+
+console.log(err);
+
+}
+
+});
+
+</script>
+
+</body>
+</html>

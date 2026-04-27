@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Feedback</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+
+<div class="bg-white p-6 rounded shadow w-96">
+
+<h2 class="text-xl font-bold mb-4">
+
+⭐ Submit Feedback
+
+</h2>
+
+<input
+id="name"
+placeholder="Your Name"
+class="w-full border p-2 mb-3"/>
+
+<textarea
+id="message"
+placeholder="Your Feedback"
+class="w-full border p-2 mb-3"></textarea>
+
+<button
+onclick="submitFeedback()"
+class="bg-green-500 text-white px-4 py-2 rounded w-full">
+
+Submit Feedback
+
+</button>
+
+<p id="msg" class="mt-3 text-center"></p>
+
+</div>
+
+<script>
+
+const API =
+"https://script.google.com/macros/s/AKfycbzMG4yuAwD-5cRbOLdl5uWhtyURFFV10n5CD2WeRvNQtC0sJ7GNivmrDEEXQQ97RxXe/exec";
+
+function getBookingId(){
+
+const params =
+new URLSearchParams(
+window.location.search
+);
+
+return params.get("id");
+
+}
+
+async function submitFeedback(){
+
+let bookingId =
+getBookingId();
+
+let name =
+document.getElementById("name").value;
+
+let message =
+document.getElementById("message").value;
+
+await fetch(API,{
+
+method:"POST",
+
+mode:"no-cors",
+
+body:JSON.stringify({
+
+action:"submitFeedback",
+
+bookingId:bookingId,
+
+name:name,
+
+message:message
+
+})
+
+});
+
+document
+.getElementById("msg")
+.innerHTML =
+"✅ Feedback Submitted";
+
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Admin Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100 p-6">
+
+<script>
+
+/* CHECK LOGIN */
+
+if(
+localStorage.getItem("adminLoggedIn")
+!== "yes"
+){
+
+window.location =
+"login.html";
+
+}
+
+</script>
+
+<div class="flex justify-between items-center mb-6">
+
+<h1 class="text-2xl font-bold">
+🚖 Cab Admin Dashboard
+</h1>
+
+<button
+onclick="logout()"
+class="bg-red-500 text-white px-4 py-2 rounded">
+
+Logout
+
+</button>
+
+</div>
+
+<table class="min-w-full bg-white border">
+
+<thead class="bg-gray-200">
+
+<tr>
+
+<th class="p-2">Booking ID</th>
+<th>Name</th>
+<th>Mobile</th>
+<th>Pickup</th>
+<th>Destination</th>
+<th>Date</th>
+<th>Status</th>
+<th>Assign Driver</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+<!-- Driver Modal -->
+
+<div
+id="driverModal"
+class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center">
+
+<div class="bg-white p-6 rounded shadow w-80">
+
+<h2 class="text-lg font-bold mb-4">
+Assign Driver
+</h2>
+
+<select
+id="driverSelect"
+class="w-full border p-2 rounded mb-4">
+
+</select>
+
+<button
+onclick="confirmAssign()"
+class="bg-blue-500 text-white px-4 py-2 rounded w-full">
+
+Assign Driver
+
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* LOGOUT */
+
+function logout(){
+
+localStorage.removeItem(
+"adminLoggedIn"
+);
+
+window.location="login.html";
+
+}
+
+/* API */
+
+const API =
+"https://script.google.com/macros/s/AKfycbxHALqAl1ciqOuiZI4KUDcPX3wtpiLyZsDiTdvLTuSUS5TsSVSalFVIKc7BZSA5nZSU/exec";
+
+let selectedBookingId=null;
+let driversList=[];
+
+/* LOAD BOOKINGS */
+
+async function loadBookings(){
+
+let res =
+await fetch(
+API + "?action=getBookings"
+);
+
+let data =
+await res.json();
+
+let html="";
+
+for(let b of data){
+
+html += `
+
+<tr class="border">
+
+<td class="p-2">${b.id}</td>
+
+<td>${b.name}</td>
+
+<td>${b.mobile}</td>
+
+<td>${b.pickup}</td>
+
+<td>${b.destination}</td>
+
+<td>${b.date}</td>
+
+<td>
+
+<select
+onchange="updateStatus('${b.id}',this.value)"
+class="border p-1">
+
+<option ${b.status=="NEW"?"selected":""}>
+NEW
+</option>
+
+<option ${b.status=="ASSIGNED"?"selected":""}>
+ASSIGNED
+</option>
+
+<option ${b.status=="STARTED"?"selected":""}>
+STARTED
+</option>
+
+<option ${b.status=="COMPLETED"?"selected":""}>
+COMPLETED
+</option>
+
+<option ${b.status=="CANCELLED"?"selected":""}>
+CANCELLED
+</option>
+
+</select>
+
+</td>
+
+<td>
+
+<button
+onclick="openDriverModal('${b.id}')"
+class="bg-blue-500 text-white px-3 py-1 rounded">
+
+Assign
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+}
+
+document
+.getElementById("tableBody")
+.innerHTML=html;
+
+}
+
+/* OPEN DRIVER MODAL */
+
+async function openDriverModal(id){
+
+selectedBookingId=id;
+
+let res =
+await fetch(
+API + "?action=getDrivers"
+);
+
+driversList =
+await res.json();
+
+let dropdown =
+document.getElementById(
+"driverSelect"
+);
+
+dropdown.innerHTML="";
+
+driversList.forEach(d=>{
+
+let option =
+document.createElement("option");
+
+option.value=d.name;
+
+option.textContent =
+d.name +
+" (" +
+d.vehicle +
+")";
+
+dropdown.appendChild(option);
+
+});
+
+document
+.getElementById("driverModal")
+.classList.remove("hidden");
+
+}
+/* STATUS UPDATE */
+async function updateStatus(id,status){
+
+await fetch(API,{
+
+method:"POST",
+
+mode:"no-cors",
+
+body:JSON.stringify({
+
+action:"updateStatus",
+
+id:id,
+
+status:status
+
+})
+
+});
+
+alert("Status Updated");
+
+loadBookings();
+
+}
+
+/* CONFIRM ASSIGN */
+
+async function confirmAssign(){
+
+let selectedName =
+document.getElementById(
+"driverSelect"
+).value;
+
+let driver =
+driversList.find(d =>
+d.name === selectedName
+);
+
+await fetch(API,{
+
+method:"POST",
+
+mode:"no-cors",
+
+body:JSON.stringify({
+
+action:"assignDriver",
+
+id:selectedBookingId,
+
+driverName:driver.name,
+
+driverMobile:driver.mobile,
+
+vehicle:driver.vehicle
+
+})
+
+});
+
+alert("Driver Assigned");
+
+document
+.getElementById("driverModal")
+.classList.add("hidden");
+
+loadBookings();
+
+}
+
+/* INITIAL LOAD */
+
+loadBookings();
+
+</script>
+
+</body>
+
+</html>
